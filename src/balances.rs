@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt::Result}; 
+use std::collections::BTreeMap;
 pub struct Pallet {
       balances: BTreeMap<String, u128>,
 } 
@@ -34,8 +34,6 @@ impl Pallet {
             to: String,
             amount: u128,
       ) -> Result<(), &'static str> {
-            let caller_balance = self.get_balance(&caller);
-            let to_balance = self.get_balance(&to);
             /*TODO:
             - Get the balance of account 'caller'
             - Get the balance of account 'to'
@@ -46,6 +44,87 @@ impl Pallet {
             - Update the balance of account 'caller' to 'new_caller_balance'
             - Update the balance of account 'to' to 'new_to_balance'
 
-             */
+            */
+            let caller_balance = self.get_balance(&caller);
+            let to_balance = self.get_balance(&to);
+
+            let new_caller_balance = caller_balance
+                  .checked_sub(amount)
+                  .ok_or("Insufficient balance")?;
+
+            let new_to_balance = to_balance
+                  .checked_add(amount)
+                  .ok_or("Overflow while transferring")?;
+
+            self.set_balance(&caller, new_caller_balance);
+            self.set_balance(&to, new_to_balance);
+
+            Ok(())
+            
+      }
+}
+
+#[cfg(test)]
+mod test {
+      #[test]
+      fn init_balances() {
+            let mut pallet = super::Pallet::new();
+        
+            assert_eq!(pallet.get_balance(&"Alice".to_string()), 0);
+            pallet.set_balance(&"Alice".to_string(), 100);
+            assert_eq!(pallet.get_balance(&"Alice".to_string()), 100);
+            assert_eq!(pallet.get_balance(&"Bob".to_string()), 0);
+      }
+        
+      #[test]
+      fn transfer_balance() {
+            let alice = "alice".to_string();
+            let bob = "bob".to_string();
+              /*TODO: Create a test that checks the following:
+              - That 'alice' cannot transfer funds she does not have
+              - That 'alice' can successfully transfer funds to 'bob'
+              - That the balance of 'alice' and 'bob' is updated correctly after the transfer
+               */
+            let mut pallet = super::Pallet::new();
+
+            pallet.set_balance(&"alice".to_string(), 100);
+
+            let _ = pallet.transfer(alice.clone(), bob.clone(), 90);
+
+            assert_eq!(pallet.get_balance(&alice), 10);
+            assert_eq!(pallet.get_balance(&bob), 90);
+      }
+
+      #[test]
+      fn transfer_balance_insufficient() {
+            let alice = "alice".to_string();
+            let bob = "bob".to_string();
+
+            let mut pallet = super::Pallet::new();
+
+            pallet.set_balance(&"alice".to_string(), 100);
+
+            let result = pallet.transfer(alice.clone(), bob.clone(), 110);
+
+            assert_eq!(result, Err("Insufficient balance"));
+            assert_eq!(pallet.get_balance(&alice), 100);
+            assert_eq!(pallet.get_balance(&bob), 0);
+      }
+
+      #[test]
+      fn transfer_balance_overflow() {
+            let alice = "alice".to_string();
+            let bob = "bob".to_string();
+
+            let mut pallet = super::Pallet::new();
+
+            pallet.set_balance(&"alice".to_string(), 100);
+            pallet.set_balance(&"bob".to_string(), u128::MAX);
+
+            let result = pallet.transfer(alice.clone(), bob.clone(), 1);
+
+            assert_eq!(result, Err("Overflow while transferring"));
+            assert_eq!(pallet.get_balance(&alice), 100);
+            assert_eq!(pallet.get_balance(&bob), u128::MAX);
       }
 }
