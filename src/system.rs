@@ -1,6 +1,7 @@
 /*TODO: You might need to update your imports. */
 use std::collections::BTreeMap;
 
+#[derive(Debug)]
 /// This is the System Pallet
 /// It handles the system level functionality of the blockchain
 pub struct Pallet {
