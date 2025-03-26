@@ -1,6 +1,15 @@
 /*TODO: You might need to update your imports. */
 use std::collections::BTreeMap;
 
+/*TODO: Define the common types used in this pallet:
+      - 'AccountID'
+      - 'BlockNumber'
+      - 'Nonce' 
+*/
+type AccountID = String;
+type BlockNumber = u32;
+type Nonce = u32;
+
 #[derive(Debug)]
 /// This is the System Pallet
 /// It handles the system level functionality of the blockchain
@@ -10,8 +19,8 @@ pub struct Pallet {
       /// A map from an account to their nonce.
       /// The nonce is used to prevent replay attacks.
       /*TODO: Create a field 'nonce' that is a 'BTreeMap' from 'String' to 'u32'. */
-      block_number: u32,
-      nonce: BTreeMap<String, u32>,   // (wallet, nonce)
+      block_number: BlockNumber,
+      nonce: BTreeMap<AccountID, Nonce>,   // (wallet, nonce)
 }
 
 impl Pallet {
@@ -23,7 +32,7 @@ impl Pallet {
       }
 
       /// Get the current block number
-      pub fn block_number(&self) -> u32 {
+      pub fn block_number(&self) -> BlockNumber {
             /*TODO: Return the current block number. */
             self.block_number
       }
@@ -37,13 +46,13 @@ impl Pallet {
       }
 
       // Increment the nonce of an account. This helps us keep track of how many transactions an account has made
-      pub fn increment_nonce(&mut self, who: &String) {
+      pub fn increment_nonce(&mut self, who: &AccountID) {
             /*TODO: Get the current nonce of 'who', and increment it by 1 */
             let nonce = self.nonce.get(who).unwrap_or(&0);
             self.nonce.insert(who.clone(), nonce + 1);
       }
 
-      pub fn get_nonce(&self, who: &String) -> u32 {
+      pub fn get_nonce(&self, who: &AccountID) -> Nonce {
             *self.nonce.get(who).unwrap_or(&0)
       }
 }

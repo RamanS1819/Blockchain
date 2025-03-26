@@ -1,8 +1,11 @@
 use std::collections::BTreeMap;
 
+type AccountID = String;
+type Balance = u128;
+
 #[derive(Debug)]
 pub struct Pallet {
-      balances: BTreeMap<String, u128>,   // (string:wallet, u128:balance)
+      balances: BTreeMap<AccountID, Balance>,   // (string:wallet, u128:balance)
 } 
 
 // function to create a new instance of the Pallet struct from outside
@@ -14,14 +17,14 @@ impl Pallet {
       }
 
       /// function to set the balance of an account 'who' to some 'amount'
-      pub fn set_balance(&mut self, who: &String, amount: u128) {
+      pub fn set_balance(&mut self, who: &AccountID, amount: Balance) {
             /*insert 'amount' into the BTreeMap under 'who' */
             self.balances.insert(who.clone(), amount);
       }
 
       /// function to get the balance of an account 'who'
       /// returns the balance of 'who' if it exists, otherwise returns 0
-      pub fn get_balance(&self, who: &String) -> u128 {
+      pub fn get_balance(&self, who: &AccountID) -> Balance {
             /* get the balance of 'who' from the BTreeMap */
             *self.balances.get(who).unwrap_or(&0)
       }
@@ -32,9 +35,9 @@ impl Pallet {
       /// and that no mathematical overflow occurs
       pub fn transfer(
             &mut self,
-            caller: String,
-            to: String,
-            amount: u128,
+            caller: AccountID,
+            to: AccountID,
+            amount: Balance,
       ) -> Result<(), &'static str> {
             /*TODO:
             - Get the balance of account 'caller'
