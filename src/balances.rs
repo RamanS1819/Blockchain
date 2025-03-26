@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 pub struct Pallet {
-      balances: BTreeMap<String, u128>,
+      balances: BTreeMap<String, u128>,   // (string:wallet, u128:balance)
 } 
 
 // function to create a new instance of the Pallet struct from outside
