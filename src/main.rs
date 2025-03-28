@@ -1,12 +1,19 @@
 mod balances;
 mod system; 
 
+mod types {
+    pub type AccountID = String;
+    pub type Balance = u128;
+    pub type BlockNumber = u32;
+    pub type Nonce = u32;
+}
+
 #[derive(Debug)]    
 pub struct Runtime {
     /*TODO: Create a field 'system' which is of type 'system::Pallet'. */
     /*TODO: Create a field 'balances' which is of type 'balances::Pallet'. */
-    system: system::Pallet,
-    balances: balances::Pallet,
+    system: system::Pallet<types::AccountID, types::BlockNumber, types::Nonce>,
+    balances: balances::Pallet<types::AccountID, types::Balance>,
 }
 
 impl Runtime {

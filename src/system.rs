@@ -1,5 +1,8 @@
 /*TODO: You might need to update your imports. */
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, ops::AddAssign};
+use num::traits::{CheckedAdd, CheckedSub, Zero, One};
+
+use crate::types::Balance;
 
 /*TODO: Define the common types used in this pallet:
       - 'AccountID'
@@ -13,7 +16,7 @@ type Nonce = u32;
 #[derive(Debug)]
 /// This is the System Pallet
 /// It handles the system level functionality of the blockchain
-pub struct Pallet {
+pub struct Pallet<AccountID, BlockNumber, Nonce> {
       /// The current block number
       /*TODO: Create a field 'block_number' that stores a 'u32'.*/
       /// A map from an account to their nonce.
@@ -23,10 +26,15 @@ pub struct Pallet {
       nonce: BTreeMap<AccountID, Nonce>,   // (wallet, nonce)
 }
 
-impl Pallet {
+impl <AccountID, BlockNumber, Nonce> Pallet<AccountID, BlockNumber, Nonce> 
+where
+      AccountID: Ord + Clone,
+      BlockNumber: Zero + One + CheckedAdd + CheckedSub + Copy + AddAssign,
+      Nonce: Ord + Clone + Copy + Zero + CheckedAdd + CheckedSub + One,
+{
       pub fn new() -> Self {
             Self {
-                  block_number: 0,
+                  block_number: BlockNumber::zero(),   // start at block 0
                   nonce: BTreeMap::new(),
             }
       }
@@ -42,18 +50,18 @@ impl Pallet {
       /// It should also increment the nonce of the system account
       pub fn increment_block_number(&mut self) {
             /*TODO: Increment the current block number by 1 */
-            self.block_number = self.block_number.checked_add(1).unwrap();     //[used unwrap: crashes if overflow(for purpose)]
+            self.block_number += BlockNumber::one();     //[used unwrap: crashes if overflow(for purpose)]
       }
 
       // Increment the nonce of an account. This helps us keep track of how many transactions an account has made
       pub fn increment_nonce(&mut self, who: &AccountID) {
             /*TODO: Get the current nonce of 'who', and increment it by 1 */
-            let nonce = self.nonce.get(who).unwrap_or(&0);
-            self.nonce.insert(who.clone(), nonce + 1);
+            let nonce = *self.nonce.get(who).unwrap_or(&Nonce::zero());
+            self.nonce.insert(who.clone(), nonce + Nonce::one());
       }
 
       pub fn get_nonce(&self, who: &AccountID) -> Nonce {
-            *self.nonce.get(who).unwrap_or(&0)
+            *self.nonce.get(who).unwrap_or(&Nonce::zero())
       }
 }
 
@@ -68,13 +76,13 @@ mod test {
             - Check that the current block number is what we expect.
             - Check that the nonce of 'alice' is what we expect.
              */
-            let system = super::Pallet::new();
+            let system: super::Pallet<String, u32, u32> = super::Pallet::new();
             assert_eq!(system.block_number(), 0);
       }
 
       #[test]
       fn increment_block_number() {
-            let mut system = super::Pallet::new();
+            let mut system: super::Pallet<String, u32, u32> = super::Pallet::new();
             system.increment_block_number();
             assert_eq!(system.block_number(), 1);
       }
@@ -82,7 +90,7 @@ mod test {
       #[test]
       fn increment_nonce() {
             let alice = String::from("alice");
-            let mut system = super::Pallet::new();
+            let mut system: super::Pallet<String, u32, u32> = super::Pallet::new();
             system.increment_nonce(&alice.clone());
             assert_eq!(system.get_nonce(&alice), 1);
       }
