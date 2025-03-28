@@ -8,12 +8,22 @@ mod types {
     pub type Nonce = u32;
 }
 
+impl system::Config for Runtime {
+    type AccountID = types::AccountID;
+    type BlockNumber = types::BlockNumber;
+    type Nonce = types::Nonce;
+}
+
+impl balances::Config for Runtime {
+    type Balance = types::Balance;
+}
+
 #[derive(Debug)]    
 pub struct Runtime {
     /*TODO: Create a field 'system' which is of type 'system::Pallet'. */
     /*TODO: Create a field 'balances' which is of type 'balances::Pallet'. */
-    system: system::Pallet<types::AccountID, types::BlockNumber, types::Nonce>,
-    balances: balances::Pallet<types::AccountID, types::Balance>,
+    system: system::Pallet<Runtime>,
+    balances: balances::Pallet<Runtime>,
 }
 
 impl Runtime {
@@ -78,12 +88,12 @@ fn main() {
 
 #[test]
 fn init_balances() {
-    let mut pallet = balances::Pallet::new();
+    let mut balances: balances::Pallet<Runtime> = balances::Pallet::new();
 
-    assert_eq!(pallet.get_balance(&"Alice".to_string()), 0);
-    pallet.set_balance(&"Alice".to_string(), 100);
-    assert_eq!(pallet.get_balance(&"Alice".to_string()), 100);
-    assert_eq!(pallet.get_balance(&"Bob".to_string()), 0);
+    assert_eq!(balances.get_balance(&"Alice".to_string()), 0);
+    balances.set_balance(&"Alice".to_string(), 100);
+    assert_eq!(balances.get_balance(&"Alice".to_string()), 100);
+    assert_eq!(balances.get_balance(&"Bob".to_string()), 0);
 }
 
 #[test]

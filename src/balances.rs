@@ -1,17 +1,20 @@
 use std::collections::BTreeMap;
-use num::traits::{CheckedAdd, CheckedSub, Zero};
+use num::traits::{CheckedAdd, CheckedSub, Zero, One};
+// Ensure the `system` module is imported or defined correctly
+use crate::system; // If `system` is in the same crate
+// Alternatively, define or import `system` if it is missing
 
+pub trait Config: crate::system::Config {
+      type Balance: Zero + CheckedAdd + CheckedSub + Copy;
+}
 
 #[derive(Debug)]
-pub struct Pallet<AccountID, Balance> {
-      balances: BTreeMap<AccountID, Balance>,   // (string:wallet, u128:balance)
+pub struct Pallet<T: Config> {
+      balances: BTreeMap<T::AccountID, T::Balance>,   // (string:wallet, u128:balance)
 } 
 
 // function to create a new instance of the Pallet struct from outside
-impl <AccountID, Balance> Pallet<AccountID, Balance> 
-where
-      AccountID: Ord + Clone,
-      Balance: Zero + CheckedAdd + CheckedSub + Copy,
+impl <T: Config> Pallet<T> 
 {
       pub fn new() -> Self {
             Self {
@@ -20,16 +23,16 @@ where
       }
 
       /// function to set the balance of an account 'who' to some 'amount'
-      pub fn set_balance(&mut self, who: &AccountID, amount: Balance) {
+      pub fn set_balance(&mut self, who: &T::AccountID, amount: T::Balance) {
             /*insert 'amount' into the BTreeMap under 'who' */
             self.balances.insert(who.clone(), amount);
       }
 
       /// function to get the balance of an account 'who'
       /// returns the balance of 'who' if it exists, otherwise returns 0
-      pub fn get_balance(&self, who: &AccountID) -> Balance {
+      pub fn get_balance(&self, who: &T::AccountID) -> T::Balance {
             /* get the balance of 'who' from the BTreeMap */
-            *self.balances.get(who).unwrap_or(&Balance::zero())
+            *self.balances.get(who).unwrap_or(&T::Balance::zero())
       }
 
       /// function to transfer 'amount' from one account to another
@@ -38,9 +41,9 @@ where
       /// and that no mathematical overflow occurs
       pub fn transfer(
             &mut self,
-            caller: AccountID,
-            to: AccountID,
-            amount: Balance,
+            caller: T::AccountID,
+            to: T::AccountID,
+            amount: T::Balance,
       ) -> Result<(), &'static str> {
             /*TODO:
             - Get the balance of account 'caller'
@@ -73,15 +76,28 @@ where
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
+      struct TestConfig;
+
+      impl system::Config for TestConfig {
+            type AccountID = String;
+            type BlockNumber = u32;
+            type Nonce = u32;
+
+      }
+
+      impl super::Config for TestConfig {
+            type Balance = u128;
+      }
+
       #[test]
       fn init_balances() {
-            let mut pallet = super::Pallet::new();
+            let mut balances: super::Pallet<TestConfig> = super::Pallet::new();
         
-            assert_eq!(pallet.get_balance(&"Alice".to_string()), 0);
-            pallet.set_balance(&"Alice".to_string(), 100);
-            assert_eq!(pallet.get_balance(&"Alice".to_string()), 100);
-            assert_eq!(pallet.get_balance(&"Bob".to_string()), 0);
+            assert_eq!(balances.get_balance(&"Alice".to_string()), 0);
+            balances.set_balance(&"Alice".to_string(), 100);
+            assert_eq!(balances.get_balance(&"Alice".to_string()), 100);
+            assert_eq!(balances.get_balance(&"Bob".to_string()), 0);
       }
         
       #[test]
@@ -93,14 +109,14 @@ mod test {
               - That 'alice' can successfully transfer funds to 'bob'
               - That the balance of 'alice' and 'bob' is updated correctly after the transfer
                */
-            let mut pallet = super::Pallet::new();
+            let mut balances: super::Pallet<TestConfig> = super::Pallet::new();
 
-            pallet.set_balance(&"alice".to_string(), 100);
+            balances.set_balance(&"alice".to_string(), 100);
 
-            let _ = pallet.transfer(alice.clone(), bob.clone(), 90);
+            let _ = balances.transfer(alice.clone(), bob.clone(), 90);
 
-            assert_eq!(pallet.get_balance(&alice), 10);
-            assert_eq!(pallet.get_balance(&bob), 90);
+            assert_eq!(balances.get_balance(&alice), 10);
+            assert_eq!(balances.get_balance(&bob), 90);
       }
 
       #[test]
@@ -108,15 +124,15 @@ mod test {
             let alice = "alice".to_string();
             let bob = "bob".to_string();
 
-            let mut pallet = super::Pallet::new();
+            let mut balances: super::Pallet<TestConfig> = super::Pallet::new();
 
-            pallet.set_balance(&"alice".to_string(), 100);
+            balances.set_balance(&"alice".to_string(), 100);
 
-            let result = pallet.transfer(alice.clone(), bob.clone(), 110);
+            let result = balances.transfer(alice.clone(), bob.clone(), 110);
 
             assert_eq!(result, Err("Insufficient balance"));
-            assert_eq!(pallet.get_balance(&alice), 100);
-            assert_eq!(pallet.get_balance(&bob), 0);
+            assert_eq!(balances.get_balance(&alice), 100);
+            assert_eq!(balances.get_balance(&bob), 0);
       }
 
       #[test]
@@ -124,15 +140,15 @@ mod test {
             let alice = "alice".to_string();
             let bob = "bob".to_string();
 
-            let mut pallet = super::Pallet::new();
+            let mut balances: super::Pallet<TestConfig> = super::Pallet::new();
 
-            pallet.set_balance(&"alice".to_string(), 100);
-            pallet.set_balance(&"bob".to_string(), u128::MAX);
+            balances.set_balance(&"alice".to_string(), 100);
+            balances.set_balance(&"bob".to_string(), u128::MAX);
 
-            let result = pallet.transfer(alice.clone(), bob.clone(), 1);
+            let result = balances.transfer(alice.clone(), bob.clone(), 1);
 
             assert_eq!(result, Err("Overflow while transferring"));
-            assert_eq!(pallet.get_balance(&alice), 100);
-            assert_eq!(pallet.get_balance(&bob), u128::MAX);
+            assert_eq!(balances.get_balance(&alice), 100);
+            assert_eq!(balances.get_balance(&bob), u128::MAX);
       }
 }
