@@ -74,6 +74,36 @@ impl <T: Config> Pallet<T>
       }
 }
 
+
+pub enum Call<T: Config> {
+      /* TODO: Create an enum variant 'Transfer' which contains named fields:
+      - 'to' of type T::AccountID
+      - 'amount' of type T::Balance
+       */
+      Transfer { 
+            to: T::AccountID, 
+            amount: T::Balance 
+      },
+}
+
+impl<T: Config> crate::support::Dispatch for Pallet<T> {
+      type Caller = T::AccountID;
+      type Call = Call<T>;
+
+      fn dispatch(
+                  &mut self,
+                  caller: Self::Caller,
+                  call: Self::Call,
+      ) -> crate::support::DispatchResult {
+          match call {
+            Call::Transfer { to, amount } => {
+                  self.transfer(caller, to, amount)?;
+            }
+          }
+          Ok(())
+      }
+}
+
 #[cfg(test)]
 mod tests {
       use crate::system;

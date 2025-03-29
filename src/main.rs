@@ -20,10 +20,7 @@ mod types {
 }
 
 pub enum RuntimeCall {
-    BalancesTransfer{
-        to: types::AccountID,
-        amount: types::Balance,
-    },
+    Balances(balances::Call<Runtime>),
 }
 
 impl system::Config for Runtime {
@@ -99,9 +96,10 @@ impl crate::support::Dispatch for Runtime {
             runtime_call: Self::Call,
     ) -> support::DispatchResult {
         match runtime_call {
-            RuntimeCall::BalancesTransfer { to, amount } => {
-                self.balances.transfer(caller, to, amount)?;
-            }
+            RuntimeCall::Balances(call) => {
+                // Call the dispatch function of the balances pallet
+                self.balances.dispatch(caller, call)?;
+            },
         }
         Ok(())
     }
@@ -123,11 +121,11 @@ fn main() {
         extrinsics: vec![
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::BalancesTransfer { to: bob.clone(), amount: 30 },
+                call: RuntimeCall::Balances(balances::Call::Transfer { to: bob.clone(), amount: 30 }),
             },
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::BalancesTransfer { to: charlie.clone(), amount: 20 },
+                call: RuntimeCall::Balances(balances::Call::Transfer { to: charlie.clone(), amount: 20 }),
             },
         ],
     };
@@ -137,15 +135,15 @@ fn main() {
         extrinsics: vec![
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::BalancesTransfer { to: bob.clone(), amount: 30 },
+                call: RuntimeCall::Balances(balances::Call::Transfer { to: bob.clone(), amount: 30 }),
             },
             support::Extrinsic {
                 caller: alice,
-                call: RuntimeCall::BalancesTransfer { to: charlie.clone(), amount: 20 },
+                call: RuntimeCall::Balances(balances::Call::Transfer { to: charlie.clone(), amount: 20 }),
             },
             support::Extrinsic {
                 caller: bob,
-                call: RuntimeCall::BalancesTransfer { to: charlie, amount: 20 },
+                call: RuntimeCall::Balances(balances::Call::Transfer { to: charlie, amount: 20 }),
             },
         ],
     };
