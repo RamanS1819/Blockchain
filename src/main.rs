@@ -20,7 +20,10 @@ mod types {
 }
 
 pub enum RuntimeCall {
-
+    BalancesTransfer{
+        to: types::AccountID,
+        amount: types::Balance,
+    },
 }
 
 impl system::Config for Runtime {
@@ -93,9 +96,14 @@ impl crate::support::Dispatch for Runtime {
     fn dispatch(
             &mut self,
             caller: Self::Caller,
-            call: Self::Call,
+            runtime_call: Self::Call,
     ) -> support::DispatchResult {
-        unimplemented!();
+        match runtime_call {
+            RuntimeCall::BalancesTransfer { to, amount } => {
+                self.balances.transfer(caller, to, amount)?;
+            }
+        }
+        Ok(())
     }
 }
 
@@ -109,7 +117,45 @@ fn main() {
     let charlie = "charlie".to_string();
 
     runtime.balances.set_balance(&alice, 100);
+/////////////////////////////////
+    let block_1 = types::Block {
+        header: support::Header { block_number: 1 },
+        extrinsics: vec![
+            support::Extrinsic {
+                caller: alice.clone(),
+                call: RuntimeCall::BalancesTransfer { to: bob.clone(), amount: 30 },
+            },
+            support::Extrinsic {
+                caller: alice.clone(),
+                call: RuntimeCall::BalancesTransfer { to: charlie.clone(), amount: 20 },
+            },
+        ],
+    };
 
+    let block_2 = types::Block {
+        header: support::Header { block_number: 2 },
+        extrinsics: vec![
+            support::Extrinsic {
+                caller: alice.clone(),
+                call: RuntimeCall::BalancesTransfer { to: bob.clone(), amount: 30 },
+            },
+            support::Extrinsic {
+                caller: alice,
+                call: RuntimeCall::BalancesTransfer { to: charlie.clone(), amount: 20 },
+            },
+            support::Extrinsic {
+                caller: bob,
+                call: RuntimeCall::BalancesTransfer { to: charlie, amount: 20 },
+            },
+        ],
+    };
+
+    runtime.execute_block(block_1).expect("wrong block execution");
+    runtime.execute_block(block_2).expect("wrong block execution");
+
+
+    //////////OR/////////
+/*  
 
     // Start emulating a block
     // TODO: Increment the block number in system
@@ -140,7 +186,7 @@ fn main() {
     let _ = runtime.balances
         .transfer(alice.clone(), charlie.clone(), 20)
         .map_err(|e| println!("Error: {:?}", e));
-
+*/
 
     println!("{:#?}", runtime); // This will print the state of the runtime after the transactions
 }
