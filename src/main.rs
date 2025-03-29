@@ -1,11 +1,26 @@
+use support::Dispatch;
+
 mod balances;
 mod system; 
+mod support;
 
 mod types {
+    use crate::support;
+
     pub type AccountID = String;
     pub type Balance = u128;
     pub type BlockNumber = u32;
     pub type Nonce = u32;
+    // TODO: Define a concrete 'Extrinsic' type using 'AccountID' and 'RuntimeCall'
+    // TODO: Define a concrete 'Header' type using 'BlockNumber'
+    // TODO: Define a concrete 'Block' type using 'Header' and 'Extrinsic'
+    pub type Extrinsic = support::Extrinsic<AccountID, crate::RuntimeCall>;
+    pub type Header = support::Header<BlockNumber>;
+    pub type Block = support::Block<Header, Extrinsic>;
+}
+
+pub enum RuntimeCall {
+
 }
 
 impl system::Config for Runtime {
@@ -34,6 +49,53 @@ impl Runtime {
             system: system::Pallet::new(),
             balances: balances::Pallet::new(),
         }
+    }
+
+    // Execute a block of extrinsics. Increments the block number.
+    fn execute_block(&mut self, block: types::Block) -> support::DispatchResult {
+        /* TODO:
+        - Increment the block number in the system
+        - Check that the block number of the incoming block matches the current block number, or return an error.
+        - Iterate over the extrinsics in the block...
+                 - Increment the nonce of the caller
+                 - Dispatch the extrinsic using the 'caller' and the 'call' contained in the extrinsic error and capturing the result
+                 - You can extend the error message to include information like the block number and extrinsic number.        
+         */
+        self.system.increment_block_number();
+
+        if (self.system.block_number() != block.header.block_number) {
+            return Err("Block number does not match");
+        }
+
+        for (i, support::Extrinsic { caller, call }) in block.extrinsics.into_iter().enumerate() {
+            self.system.increment_nonce(&caller);
+            let _ = self.dispatch(caller, call).map_err(|e| 
+                eprintln!(
+                    "Extrinsic Error\n\tBlock Number: {}\n\tExtrinsic Number:{}\n\tError: {}",
+                    block.header.block_number, i, e
+                )
+            );  
+        }
+
+        Ok(())
+    }
+}
+
+
+impl crate::support::Dispatch for Runtime {
+    type Caller = <Runtime as system::Config>::AccountID;
+    type Call = RuntimeCall;
+    // Dispatch a call on behalf of the caller. Increment the nonce of the caller.
+    // Dispatch allows us to identify which underlying module call we want to execute.
+    // Note that we extract the 'caller' from the extrinsic, and use that information
+    // to determine who we are executing the call on behalf of.
+
+    fn dispatch(
+            &mut self,
+            caller: Self::Caller,
+            call: Self::Call,
+    ) -> support::DispatchResult {
+        unimplemented!();
     }
 }
 

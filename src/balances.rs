@@ -1,8 +1,7 @@
 use std::collections::BTreeMap;
 use num::traits::{CheckedAdd, CheckedSub, Zero, One};
-// Ensure the `system` module is imported or defined correctly
-use crate::system; // If `system` is in the same crate
-// Alternatively, define or import `system` if it is missing
+// Import the `system` module from the same crate
+use crate::system;
 
 pub trait Config: crate::system::Config {
       type Balance: Zero + CheckedAdd + CheckedSub + Copy;
@@ -77,6 +76,7 @@ impl <T: Config> Pallet<T>
 
 #[cfg(test)]
 mod tests {
+      use crate::system;
       struct TestConfig;
 
       impl system::Config for TestConfig {

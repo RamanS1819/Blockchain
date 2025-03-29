@@ -1,3 +1,5 @@
+// system is responsible for storing the blockchain state
+
 /*TODO: You might need to update your imports. */
 use std::{collections::BTreeMap, ops::AddAssign};
 use num::traits::{CheckedAdd, CheckedSub, Zero, One};
@@ -66,7 +68,6 @@ impl <T: Config> Pallet<T>
 
 #[cfg(test)]
 mod test {
-
       struct TestConfig;
 
       impl super::Config for TestConfig {
