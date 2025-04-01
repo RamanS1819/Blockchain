@@ -3,6 +3,7 @@ use support::Dispatch;
 mod balances;
 mod system; 
 mod support;
+mod proof_of_existence;
 
 mod types {
     use crate::support;
