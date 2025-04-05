@@ -18,10 +18,12 @@ mod types {
     pub type Extrinsic = support::Extrinsic<AccountID, crate::RuntimeCall>;
     pub type Header = support::Header<BlockNumber>;
     pub type Block = support::Block<Header, Extrinsic>;
+    pub type Content = &'static str;
 }
 
 pub enum RuntimeCall {
     Balances(balances::Call<Runtime>),
+    ProofOfExistence(proof_of_existence::Call<Runtime>),
 }
 
 impl system::Config for Runtime {
@@ -34,12 +36,18 @@ impl balances::Config for Runtime {
     type Balance = types::Balance;
 }
 
+impl proof_of_existence::Config for Runtime {
+    type Content = types::Content;
+}
+
+
 #[derive(Debug)]    
 pub struct Runtime {
     /*TODO: Create a field 'system' which is of type 'system::Pallet'. */
     /*TODO: Create a field 'balances' which is of type 'balances::Pallet'. */
     system: system::Pallet<Runtime>,
     balances: balances::Pallet<Runtime>,
+    proof_of_existence: proof_of_existence::Pallet<Runtime>,
 }
 
 impl Runtime {
@@ -49,6 +57,7 @@ impl Runtime {
         Self {
             system: system::Pallet::new(),
             balances: balances::Pallet::new(),
+            proof_of_existence: proof_of_existence::Pallet::new(),
         }
     }
 
@@ -101,6 +110,11 @@ impl crate::support::Dispatch for Runtime {
                 // Call the dispatch function of the balances pallet
                 self.balances.dispatch(caller, call)?;
             },
+
+            RuntimeCall::ProofOfExistence(call) => {
+                // Call the dispatch function of the proof_of_existence pallet
+                self.proof_of_existence.dispatch(caller, call)?;
+            }
         }
         Ok(())
     }
@@ -136,15 +150,11 @@ fn main() {
         extrinsics: vec![
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::Balances(balances::Call::Transfer { to: bob.clone(), amount: 30 }),
+                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim { claim: "my_document" }),
             },
             support::Extrinsic {
-                caller: alice,
-                call: RuntimeCall::Balances(balances::Call::Transfer { to: charlie.clone(), amount: 20 }),
-            },
-            support::Extrinsic {
-                caller: bob,
-                call: RuntimeCall::Balances(balances::Call::Transfer { to: charlie, amount: 20 }),
+                caller: bob.clone(),
+                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim { claim: "bob_document" }),
             },
         ],
     };
