@@ -1,3 +1,6 @@
+// Proof of Existence Pallet uses the blockchain to provide a secure and immutable ledger that can be used to verify 
+// the existence of a particular document, file, or piece of data at a specific point in time.
+
 use crate::support::DispatchResult;
 use core::fmt::Debug;
 use std::collections::BTreeMap;
@@ -64,6 +67,50 @@ impl<T: Config> Pallet<T> {
             self.claims.remove(&claim);
             Ok(())
       }
+}
+
+// A public enum which describes the calls we want to expose to the dispatcher.
+// We should expect that the caller of each call will be provided by the dispatcher, and not includes as a parameter of the call.
+pub enum Call<T: Config> {
+      /*
+      TODO: Create variants for:
+            - `CreateClaim`
+            - `RevokeClaim`
+
+            Remember that you only need to pass in the 'claim' data, as 'caller'
+            information is passed in through the 'dispatch' logic.
+       */
+      CreateClaim { claim: T::Content },
+
+      RevokeClaim { claim: T::Content },
+}
+
+/// Implementation of the dispatch logic, mapping from 'POECall' to the appropriate underlying function we want to execute.
+impl<T: Config> crate::support::Dispatch for Pallet<T> {
+      /*
+      TODO: Implement 'crate::support::Dispatch' for the 'Pallet<T>'.
+      
+      In your 'dispatch' logic, match on 'call' and forward the 'caller' and 'claim' data to the appropriate function.
+       */
+      type Caller = T::AccountID;
+      type Call = Call<T>;
+
+      fn dispatch(
+            &mut self,
+            caller: Self::Caller,
+            call: Self::Call,
+      ) -> DispatchResult {
+            match call {
+                  Call::CreateClaim { claim } => {
+                        self.create_claim(caller, claim)?;
+                  }
+                  Call::RevokeClaim { claim } => {
+                        self.revoke_claim(caller, claim)?;
+                  }
+            }
+            Ok(())
+      }
+
 }
 
 
