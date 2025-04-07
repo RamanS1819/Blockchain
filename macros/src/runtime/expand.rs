@@ -26,12 +26,12 @@ pub fn expand_runtime(def: RuntimeDef) -> proc_macro2::TokenStream {
 
 			// Execute a block of extrinsics. Increments the block number.
 			fn execute_block(&mut self, block: types::Block) -> crate::support::DispatchResult {
-				self.system.inc_block_number();
+				self.system.increment_block_number();
 				if block.header.block_number != self.system.block_number() {
 					return Err(&"block number does not match what is expected")
 				}
 				for (i, support::Extrinsic { caller, call }) in block.extrinsics.into_iter().enumerate() {
-					self.system.inc_nonce(&caller);
+					self.system.increment_nonce(&caller);
 					let _res = self.dispatch(caller, call).map_err(|e| {
 						eprintln!(
 							"Extrinsic Error\n\tBlock Number: {}\n\tExtrinsic Number: {}\n\tError: {}",

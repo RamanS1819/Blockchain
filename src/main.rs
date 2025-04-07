@@ -21,10 +21,13 @@ mod types {
     pub type Content = &'static str;
 }
 
+//removed after macros introduced for runtime
+/*
 pub enum RuntimeCall {
     Balances(balances::Call<Runtime>),
     ProofOfExistence(proof_of_existence::Call<Runtime>),
 }
+*/
 
 impl system::Config for Runtime {
     type AccountId = types::AccountId;
@@ -42,6 +45,7 @@ impl proof_of_existence::Config for Runtime {
 
 
 #[derive(Debug)]    
+#[macros::runtime]
 pub struct Runtime {
     /*TODO: Create a field 'system' which is of type 'system::Pallet'. */
     /*TODO: Create a field 'balances' which is of type 'balances::Pallet'. */
@@ -50,6 +54,9 @@ pub struct Runtime {
     proof_of_existence: proof_of_existence::Pallet<Runtime>,
 }
 
+
+// removed after adding runtime macros
+/*
 impl Runtime {
     // Create a new instance of the main Runtime, by creating a new instance of each pallet
     fn new() -> Self {
@@ -119,6 +126,7 @@ impl crate::support::Dispatch for Runtime {
         Ok(())
     }
 }
+ */
 
 fn main() {
     // TODO: Create a mutable variable 'runtime' which is a new instance of 'Runtime'
@@ -136,11 +144,11 @@ fn main() {
         extrinsics: vec![
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::Balances(balances::Call::transfer { to: bob.clone(), amount: 30 }),
+                call: RuntimeCall::balances(balances::Call::transfer { to: bob.clone(), amount: 30 }),
             },
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::Balances(balances::Call::transfer { to: charlie.clone(), amount: 20 }),
+                call: RuntimeCall::balances(balances::Call::transfer { to: charlie.clone(), amount: 20 }),
             },
         ],
     };
@@ -150,11 +158,11 @@ fn main() {
         extrinsics: vec![
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::create_claim { claim: "my_document" }),
+                call: RuntimeCall::proof_of_existence(proof_of_existence::Call::create_claim { claim: "my_document" }),
             },
             support::Extrinsic {
                 caller: bob.clone(),
-                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::create_claim { claim: "bob_document" }),
+                call: RuntimeCall::proof_of_existence(proof_of_existence::Call::create_claim { claim: "bob_document" }),
             },
         ],
     };
