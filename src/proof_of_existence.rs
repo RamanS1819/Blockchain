@@ -19,7 +19,7 @@ pub struct Pallet<T: Config> {
 	/// A simple storage map from content to the owner of that content.
 	/// Accounts can make multiple different claims, but each claim can only have one owner.
 	/* TODO: Add a field `claims` which is a `BTreeMap` fom `T::Content` to `T::AccountId`. */
-      claims: BTreeMap<T::Content, T::AccountID>,
+      claims: BTreeMap<T::Content, T::AccountId>,
 }
 
 impl<T: Config> Pallet<T> {
@@ -32,14 +32,14 @@ impl<T: Config> Pallet<T> {
 	}
 
       // Get the owner (if any) of the claim.
-      pub fn get_claim(&self, claim: &T::Content) -> Option<&T::AccountID> {
+      pub fn get_claim(&self, claim: &T::Content) -> Option<&T::AccountId> {
             // TODO: Get the claim
             self.claims.get(claim)
       }
 
       // Create a new claim on behalf of the 'caller'.
       // This function will return an error if someone already has claimed that content.
-      pub fn create_claim(&mut self, caller: T::AccountID, claim: T::Content) -> DispatchResult {
+      pub fn create_claim(&mut self, caller: T::AccountId, claim: T::Content) -> DispatchResult {
             // TODO: Check that a 'claim' does not already exist. If so, return an error.
             // TODO: Insert the claim on behalf of 'caller'
             match self.get_claim(&claim) {
@@ -54,7 +54,7 @@ impl<T: Config> Pallet<T> {
       // Revoke an existing claim on some content.
       // This function should only succeed if the caller is the owner of an existing claim.
       // It will return an error if the claim does not exist, or if the caller is not the owner.
-      pub fn revoke_claim(&mut self, caller: T::AccountID, claim: T::Content) -> DispatchResult {
+      pub fn revoke_claim(&mut self, caller: T::AccountId, claim: T::Content) -> DispatchResult {
             // TODO: Get the owner of the 'claim' to be revoked.
             // TODO: Check that the 'owner' matches the 'caller'.
             // TODO: If all checks pass, then 'remove' the claim.
@@ -92,7 +92,7 @@ impl<T: Config> crate::support::Dispatch for Pallet<T> {
       
       In your 'dispatch' logic, match on 'call' and forward the 'caller' and 'claim' data to the appropriate function.
        */
-      type Caller = T::AccountID;
+      type Caller = T::AccountId;
       type Call = Call<T>;
 
       fn dispatch(
@@ -123,7 +123,7 @@ mod test {
       }
 
       impl crate::system::Config for TestConfig {
-            type AccountID = &'static str;
+            type AccountId = &'static str;
             type BlockNumber = u32;
             type Nonce = u32;
       }

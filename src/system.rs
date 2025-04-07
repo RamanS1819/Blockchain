@@ -6,13 +6,13 @@ use num::traits::{CheckedAdd, CheckedSub, Zero, One};
 
 
 /*TODO: Define the common types used in this pallet:
-      - 'AccountID'
+      - 'AccountId'
       - 'BlockNumber'
       - 'Nonce' 
 */
 
 pub trait Config  {
-      type AccountID: Ord + Clone;
+      type AccountId: Ord + Clone;
       type BlockNumber: Zero + One + Copy + AddAssign;
       type Nonce: Copy + Zero + One;
 }
@@ -27,7 +27,7 @@ pub struct Pallet<T: Config> {
       /// The nonce is used to prevent replay attacks.
       /*TODO: Create a field 'nonce' that is a 'BTreeMap' from 'String' to 'u32'. */
       block_number: T::BlockNumber,
-      nonce: BTreeMap<T::AccountID, T::Nonce>,   // (wallet, nonce)
+      nonce: BTreeMap<T::AccountId, T::Nonce>,   // (wallet, nonce)
 }
 
 impl <T: Config> Pallet<T>
@@ -54,13 +54,13 @@ impl <T: Config> Pallet<T>
       }
 
       // Increment the nonce of an account. This helps us keep track of how many transactions an account has made
-      pub fn increment_nonce(&mut self, who: &T::AccountID) {
+      pub fn increment_nonce(&mut self, who: &T::AccountId) {
             /*TODO: Get the current nonce of 'who', and increment it by 1 */
             let nonce = *self.nonce.get(who).unwrap_or(&T::Nonce::zero());
             self.nonce.insert(who.clone(), nonce + T::Nonce::one());
       }
 
-      pub fn get_nonce(&self, who: &T::AccountID) -> T::Nonce {
+      pub fn get_nonce(&self, who: &T::AccountId) -> T::Nonce {
             *self.nonce.get(who).unwrap_or(&T::Nonce::zero())
       }
 }
@@ -71,7 +71,7 @@ mod test {
       struct TestConfig;
 
       impl super::Config for TestConfig {
-            type AccountID = String;
+            type AccountId = String;
             type BlockNumber = u32;
             type Nonce = u32;
       }

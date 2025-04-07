@@ -9,39 +9,20 @@ pub trait Config: crate::system::Config {
 
 #[derive(Debug)]
 pub struct Pallet<T: Config> {
-      balances: BTreeMap<T::AccountID, T::Balance>,   // (string:wallet, u128:balance)
+      balances: BTreeMap<T::AccountId, T::Balance>,   // (string:wallet, u128:balance)
 } 
 
-// function to create a new instance of the Pallet struct from outside
-impl <T: Config> Pallet<T> 
-{
-      pub fn new() -> Self {
-            Self {
-                  balances: BTreeMap::new()
-            }
-      }
 
-      /// function to set the balance of an account 'who' to some 'amount'
-      pub fn set_balance(&mut self, who: &T::AccountID, amount: T::Balance) {
-            /*insert 'amount' into the BTreeMap under 'who' */
-            self.balances.insert(who.clone(), amount);
-      }
-
-      /// function to get the balance of an account 'who'
-      /// returns the balance of 'who' if it exists, otherwise returns 0
-      pub fn get_balance(&self, who: &T::AccountID) -> T::Balance {
-            /* get the balance of 'who' from the BTreeMap */
-            *self.balances.get(who).unwrap_or(&T::Balance::zero())
-      }
-
+#[macros::call]
+impl <T: Config> Pallet<T> {
       /// function to transfer 'amount' from one account to another
       /// This function verifies that the sender has enough balance to transfer
       /// and then transfers the 'amount' from the sender to the receiver
       /// and that no mathematical overflow occurs
       pub fn transfer(
             &mut self,
-            caller: T::AccountID,
-            to: T::AccountID,
+            caller: T::AccountId,
+            to: T::AccountId,
             amount: T::Balance,
       ) -> Result<(), &'static str> {
             /*TODO:
@@ -74,20 +55,47 @@ impl <T: Config> Pallet<T>
       }
 }
 
+// function to create a new instance of the Pallet struct from outside
+impl <T: Config> Pallet<T> {
+      pub fn new() -> Self {
+            Self {
+                  balances: BTreeMap::new()
+            }
+      }
 
+      /// function to set the balance of an account 'who' to some 'amount'
+      pub fn set_balance(&mut self, who: &T::AccountId, amount: T::Balance) {
+            /*insert 'amount' into the BTreeMap under 'who' */
+            self.balances.insert(who.clone(), amount);
+      }
+
+      /// function to get the balance of an account 'who'
+      /// returns the balance of 'who' if it exists, otherwise returns 0
+      pub fn get_balance(&self, who: &T::AccountId) -> T::Balance {
+            /* get the balance of 'who' from the BTreeMap */
+            *self.balances.get(who).unwrap_or(&T::Balance::zero())
+      }
+}
+
+
+// we don't need this enum after applying macros
+/*
 pub enum Call<T: Config> {
       /* TODO: Create an enum variant 'Transfer' which contains named fields:
-      - 'to' of type T::AccountID
+      - 'to' of type T::AccountId
       - 'amount' of type T::Balance
        */
       Transfer { 
-            to: T::AccountID, 
+            to: T::AccountId, 
             amount: T::Balance 
       },
 }
+ */
 
+ // we also don't need this dispatch function
+ /*
 impl<T: Config> crate::support::Dispatch for Pallet<T> {
-      type Caller = T::AccountID;
+      type Caller = T::AccountId;
       type Call = Call<T>;
 
       fn dispatch(
@@ -103,6 +111,8 @@ impl<T: Config> crate::support::Dispatch for Pallet<T> {
           Ok(())
       }
 }
+*/
+
 
 #[cfg(test)]
 mod tests {
@@ -110,7 +120,7 @@ mod tests {
       struct TestConfig;
 
       impl system::Config for TestConfig {
-            type AccountID = String;
+            type AccountId = String;
             type BlockNumber = u32;
             type Nonce = u32;
 

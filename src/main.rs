@@ -8,14 +8,14 @@ mod proof_of_existence;
 mod types {
     use crate::support;
 
-    pub type AccountID = String;
+    pub type AccountId = String;
     pub type Balance = u128;
     pub type BlockNumber = u32;
     pub type Nonce = u32;
-    // TODO: Define a concrete 'Extrinsic' type using 'AccountID' and 'RuntimeCall'
+    // TODO: Define a concrete 'Extrinsic' type using 'AccountId' and 'RuntimeCall'
     // TODO: Define a concrete 'Header' type using 'BlockNumber'
     // TODO: Define a concrete 'Block' type using 'Header' and 'Extrinsic'
-    pub type Extrinsic = support::Extrinsic<AccountID, crate::RuntimeCall>;
+    pub type Extrinsic = support::Extrinsic<AccountId, crate::RuntimeCall>;
     pub type Header = support::Header<BlockNumber>;
     pub type Block = support::Block<Header, Extrinsic>;
     pub type Content = &'static str;
@@ -27,7 +27,7 @@ pub enum RuntimeCall {
 }
 
 impl system::Config for Runtime {
-    type AccountID = types::AccountID;
+    type AccountId = types::AccountId;
     type BlockNumber = types::BlockNumber;
     type Nonce = types::Nonce;
 }
@@ -93,7 +93,7 @@ impl Runtime {
 
 
 impl crate::support::Dispatch for Runtime {
-    type Caller = <Runtime as system::Config>::AccountID;
+    type Caller = <Runtime as system::Config>::AccountId;
     type Call = RuntimeCall;
     // Dispatch a call on behalf of the caller. Increment the nonce of the caller.
     // Dispatch allows us to identify which underlying module call we want to execute.
@@ -136,11 +136,11 @@ fn main() {
         extrinsics: vec![
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::Balances(balances::Call::Transfer { to: bob.clone(), amount: 30 }),
+                call: RuntimeCall::Balances(balances::Call::transfer { to: bob.clone(), amount: 30 }),
             },
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::Balances(balances::Call::Transfer { to: charlie.clone(), amount: 20 }),
+                call: RuntimeCall::Balances(balances::Call::transfer { to: charlie.clone(), amount: 20 }),
             },
         ],
     };
