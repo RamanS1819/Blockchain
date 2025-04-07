@@ -22,21 +22,9 @@ pub struct Pallet<T: Config> {
       claims: BTreeMap<T::Content, T::AccountId>,
 }
 
+
+#[macros::call]
 impl<T: Config> Pallet<T> {
-	/// Create a new instance of the Proof of Existence Module.
-	pub fn new() -> Self {
-		/* TODO: Return a new instance of the `Pallet` struct. */
-            Self {
-                  claims: BTreeMap::new()
-            }
-	}
-
-      // Get the owner (if any) of the claim.
-      pub fn get_claim(&self, claim: &T::Content) -> Option<&T::AccountId> {
-            // TODO: Get the claim
-            self.claims.get(claim)
-      }
-
       // Create a new claim on behalf of the 'caller'.
       // This function will return an error if someone already has claimed that content.
       pub fn create_claim(&mut self, caller: T::AccountId, claim: T::Content) -> DispatchResult {
@@ -69,6 +57,56 @@ impl<T: Config> Pallet<T> {
       }
 }
 
+
+impl<T: Config> Pallet<T> {
+	/// Create a new instance of the Proof of Existence Module.
+	pub fn new() -> Self {
+		/* TODO: Return a new instance of the `Pallet` struct. */
+            Self {
+                  claims: BTreeMap::new()
+            }
+	}
+
+      // Get the owner (if any) of the claim.
+      pub fn get_claim(&self, claim: &T::Content) -> Option<&T::AccountId> {
+            // TODO: Get the claim
+            self.claims.get(claim)
+      }
+/*
+      // Create a new claim on behalf of the 'caller'.
+      // This function will return an error if someone already has claimed that content.
+      pub fn create_claim(&mut self, caller: T::AccountId, claim: T::Content) -> DispatchResult {
+            // TODO: Check that a 'claim' does not already exist. If so, return an error.
+            // TODO: Insert the claim on behalf of 'caller'
+            match self.get_claim(&claim) {
+                Some(_) => Err("Claim already exists"),
+                None => {
+                  self.claims.insert(claim, caller);
+                  Ok(())
+                }
+            }
+      }
+
+      // Revoke an existing claim on some content.
+      // This function should only succeed if the caller is the owner of an existing claim.
+      // It will return an error if the claim does not exist, or if the caller is not the owner.
+      pub fn revoke_claim(&mut self, caller: T::AccountId, claim: T::Content) -> DispatchResult {
+            // TODO: Get the owner of the 'claim' to be revoked.
+            // TODO: Check that the 'owner' matches the 'caller'.
+            // TODO: If all checks pass, then 'remove' the claim.
+            let claim_owner = self.get_claim(&claim).ok_or("Claim does not exist")?;
+
+            if claim_owner != &caller {
+                  return Err("Caller is not the owner of the claim");
+            } 
+
+            self.claims.remove(&claim);
+            Ok(())
+      }
+      */
+}
+
+/*
 // A public enum which describes the calls we want to expose to the dispatcher.
 // We should expect that the caller of each call will be provided by the dispatcher, and not includes as a parameter of the call.
 pub enum Call<T: Config> {
@@ -112,6 +150,7 @@ impl<T: Config> crate::support::Dispatch for Pallet<T> {
       }
 
 }
+ */
 
 
 #[cfg(test)]
